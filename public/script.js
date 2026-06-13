@@ -27,6 +27,28 @@ const MOODS = [
   { id:'animation', label:'Animation', emoji:'🎨', color:'#F97316', desc:'Fun for all ages',       genres:[16,10751,35],    sort:'popularity.desc' },
 ];
 
+const MOOD_GENRES = {
+  happy:     [35, 10751, 16],
+  sad:       [18, 10749],
+  romantic:  [10749, 18],
+  thriller:  [53, 9648, 80],
+  scifi:     [878, 14, 12],
+  action:    [28, 12],
+  horror:    [27, 53],
+  animation: [16, 10751, 35],
+};
+
+async function fetchMoviesForMood(moodId) {
+  const genreIds = MOOD_GENRES[moodId] || MOOD_GENRES['happy'];
+  try {
+    const data = await api('tmdb_mood', { genreIds, page: 1, sortBy: 'popularity.desc' });
+    return data.results || [];
+  } catch (err) {
+    console.error('fetchMoviesForMood error:', err);
+    return [];
+  }
+}
+
 const CONFETTI_COLORS = ['#e50914','#f5c518','#3b82f6','#10b981','#f97316','#ec4899','#8b5cf6'];
 
 let state = {
@@ -189,40 +211,51 @@ async function runMlLab() {
     });
   }
 
-  /* Fetch 3 movie posters */
+  /* Fetch movies using MOOD_GENRES mapping */
   const moviesEl = document.getElementById('ml-lab-movies');
   const seeAll   = document.getElementById('ml-lab-see-all');
   if (moviesEl) moviesEl.innerHTML = '<div class="ml-lab-movies-loading"><span class="spinner-sm"></span> Finding matches...</div>';
   if (seeAll) seeAll.style.display = 'none';
 
-  try {
-    const data = await api('tmdb_mood', {
-      genreIds: moodData?.genres ?? [18],
-      page:     1,
-      sortBy:   moodData?.sort ?? 'popularity.desc',
-    });
-    const picks = (data.results || []).filter(m => m.poster_path).slice(0, 3);
+  const allMovies = await fetchMoviesForMood(mood);
 
-    if (moviesEl) {
-      moviesEl.innerHTML = '';
-      picks.forEach((m, i) => {
-        const card = document.createElement('div');
-        card.className = 'ml-lab-movie-card';
-        card.style.animationDelay = `${i * 0.1}s`;
-        card.innerHTML = `
-          <img class="ml-lab-movie-poster" src="${TMDB_IMG}${m.poster_path}"
-               alt="${esc(m.title)}" loading="lazy"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-          <div class="ml-lab-movie-poster-fallback" style="display:none;">🎬</div>
-          <div class="ml-lab-movie-title">${esc(m.title)}</div>
-        `;
-        card.addEventListener('click', () => openModal(formatTMDbMovie(m)));
-        moviesEl.appendChild(card);
-      });
-    }
-    if (seeAll) seeAll.style.display = 'block';
-  } catch {
-    if (moviesEl) moviesEl.innerHTML = '<div class="ml-lab-movies-loading">⚠️ Could not load movies</div>';
+  if (allMovies.length === 0) {
+    if (moviesEl) moviesEl.innerHTML = '<div class="ml-lab-movies-loading">⚠️ Could not load movies. Try again.</div>';
+    return;
+  }
+
+  /* Show 3 mini posters in ML Lab panel */
+  const picks = allMovies.filter(m => m.poster_path).slice(0, 3);
+  if (moviesEl) {
+    moviesEl.innerHTML = '';
+    picks.forEach((m, i) => {
+      const card = document.createElement('div');
+      card.className = 'ml-lab-movie-card';
+      card.style.animationDelay = `${i * 0.1}s`;
+      card.innerHTML = `
+        <img class="ml-lab-movie-poster" src="${TMDB_IMG}${m.poster_path}"
+             alt="${esc(m.title)}" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="ml-lab-movie-poster-fallback" style="display:none;">🎬</div>
+        <div class="ml-lab-movie-title">${esc(m.title)}</div>
+      `;
+      card.addEventListener('click', () => openModal(formatTMDbMovie(m)));
+      moviesEl.appendChild(card);
+    });
+  }
+  if (seeAll) seeAll.style.display = 'block';
+
+  /* Also populate the full results grid below */
+  const resultsSection = document.getElementById('results-section');
+  const resultsTitle   = document.getElementById('results-title');
+  const resultsSub     = document.getElementById('results-subtitle');
+  if (resultsSection) {
+    resultsSection.style.display = 'block';
+    if (resultsTitle) typeWriter(resultsTitle, `Movies for "${moodData?.label ?? mood}" mood`);
+    if (resultsSub)   resultsSub.textContent = `ML-detected: ${confidence}% confidence`;
+    renderGrid(allMovies.map(formatTMDbMovie), 'movies-grid');
+    state.selectedMood = mood;
+    state.mode = 'mood';
   }
 }
 
