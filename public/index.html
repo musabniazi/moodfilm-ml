@@ -48,38 +48,53 @@
   <section id="hero">
     <div id="hero-particles"></div>
     <div class="hero-content">
-      <div class="hero-badge">✨ AI-Powered · Free · Unlimited</div>
+      <div class="hero-badge">🧠 Powered by Machine Learning</div>
       <h1 class="hero-title">
-        Find Your Perfect<br />
-        <span class="hero-accent">Movie Tonight</span>
+        Tell Us How<br />
+        <span class="hero-accent">You Feel</span>
       </h1>
       <p class="hero-subtitle">
-        Pick your mood or describe what you want to watch.<br />
-        Our AI finds the perfect film — instantly, for free.
+        Our ML model reads your emotions and finds the perfect movie instantly
       </p>
-      <div class="search-wrapper">
-        <div class="search-bar">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="search-input"
-            placeholder='Try "emotional sci-fi" or "movies like Interstellar"...'
-            autocomplete="off" />
-          <button class="search-btn" onclick="handleSearch()">Search</button>
-        </div>
-        <p class="search-hint">Press Enter or click Search · Powered by Gemini AI</p>
+      <div class="ml-input-wrapper">
+        <textarea id="search-input" class="ml-textarea"
+          placeholder="Describe how you're feeling right now..."
+          rows="3" autocomplete="off"></textarea>
+        <button class="ml-analyze-btn" onclick="handleSearch()">
+          <span class="ml-btn-icon">🧠</span>
+          Analyze My Mood &amp; Find Movies
+        </button>
+        <p class="search-hint">Powered by NLP sentiment analysis · Free · Instant</p>
       </div>
     </div>
     <div class="scroll-indicator">
-      <span>Choose your mood</span>
+      <span>See how it works</span>
       <div class="scroll-arrow">↓</div>
     </div>
   </section>
 
-  <!-- MOOD SECTION -->
-  <section id="mood-section">
+  <!-- HOW ML WORKS -->
+  <section id="how-ml-section">
     <div class="section-inner">
-      <h2 class="section-title">What's Your <span class="accent">Mood</span>?</h2>
-      <p class="section-subtitle">Pick a vibe and let our AI do the rest</p>
-      <div class="mood-grid" id="mood-grid"></div>
+      <h2 class="section-title">How Our <span class="accent">ML Works</span></h2>
+      <p class="section-subtitle">Three steps from your feelings to the perfect film</p>
+      <div class="how-ml-grid">
+        <div class="ml-step-card">
+          <div class="ml-step-icon">🧠</div>
+          <h3 class="ml-step-title">Sentiment Analysis</h3>
+          <p class="ml-step-desc">We analyze your text using NLP</p>
+        </div>
+        <div class="ml-step-card">
+          <div class="ml-step-icon">🎯</div>
+          <h3 class="ml-step-title">Content Filtering</h3>
+          <p class="ml-step-desc">ML matches movies to your emotion</p>
+        </div>
+        <div class="ml-step-card">
+          <div class="ml-step-icon">🎬</div>
+          <h3 class="ml-step-title">Smart Results</h3>
+          <p class="ml-step-desc">Personalized picks, just for you</p>
+        </div>
+      </div>
     </div>
   </section>
 

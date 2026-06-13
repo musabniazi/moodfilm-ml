@@ -91,7 +91,6 @@ function hideMlBadge() {
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
   loadFavorites();
-  renderMoodCards();
   renderHeroParticles();
   setupSearch();
   loadTrending();
@@ -134,28 +133,6 @@ function renderHeroParticles() {
 }
 
 
-/* ══════════════════════════════════════════════════════════
-   MOOD CARDS
-══════════════════════════════════════════════════════════ */
-function renderMoodCards() {
-  const grid = document.getElementById('mood-grid');
-  if (!grid) return;
-  MOODS.forEach(mood => {
-    const card = document.createElement('div');
-    card.className = 'mood-card';
-    card.id = `mood-${mood.id}`;
-    card.style.setProperty('--mood-color', mood.color);
-    card.innerHTML = `
-      <div class="mood-card-emoji">${mood.emoji}</div>
-      <div class="mood-card-label">${mood.label}</div>
-      <div class="mood-card-desc">${mood.desc}</div>
-      <div class="mood-dot"></div>
-    `;
-    card.addEventListener('click', () => pickMood(mood.id));
-    grid.appendChild(card);
-  });
-}
-
 function pickMood(moodId) {
   state.selectedMood = moodId;
   state.currentPage  = 1;
@@ -164,8 +141,6 @@ function pickMood(moodId) {
 
   const mood = MOODS.find(m => m.id === moodId);
 
-  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('active'));
-  document.getElementById(`mood-${moodId}`)?.classList.add('active');
   document.getElementById('results-title').textContent    = `${mood.emoji} ${mood.label} Movies`;
   document.getElementById('results-subtitle').textContent = mood.desc;
   document.getElementById('search-input').value = '';
@@ -270,7 +245,9 @@ async function loadTrending() {
 ══════════════════════════════════════════════════════════ */
 function setupSearch() {
   const input = document.getElementById('search-input');
-  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
+  if (input) input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSearch(); }
+  });
 }
 
 async function handleSearch() {
@@ -284,7 +261,6 @@ async function handleSearch() {
   state.searchPage   = 1;
   state.mode         = 'search';
 
-  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('active'));
   hideMlBadge();
   document.getElementById('results-title').textContent    = `🔍 "${query}"`;
   document.getElementById('results-subtitle').textContent = 'Search results from TMDb';
@@ -348,7 +324,6 @@ function clearResults() {
   state.detectedMood = null;
   state.mode         = null;
   hideMlBadge();
-  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('active'));
 }
 
 function retryLastAction() {
