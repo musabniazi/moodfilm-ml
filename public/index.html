@@ -31,7 +31,7 @@
         <li><a href="#" class="nav-link" onclick="scrollToFavorites()">Favorites</a></li>
         <li><a href="about.html" class="nav-link">About</a></li>
         <li><a href="contact.html" class="nav-link">Contact</a></li>
-        <li><a href="ml-dashboard.html" class="nav-link nav-link-ml">ML Lab 🧪</a></li>
+        <li><a href="#ml-lab" class="nav-link nav-link-ml" onclick="event.preventDefault();scrollToSection('ml-lab')">ML Lab 🧪</a></li>
       </ul>
       <div class="nav-right">
         <button class="fav-btn" onclick="scrollToFavorites()">
@@ -81,6 +81,77 @@
     <div class="scroll-indicator">
       <span>See how it works</span>
       <div class="scroll-arrow">↓</div>
+    </div>
+  </section>
+
+  <!-- ML LAB -->
+  <section id="ml-lab">
+    <div class="section-inner">
+      <div class="ml-lab-header">
+        <h2 class="section-title">🧠 ML Mood <span class="accent">Lab</span></h2>
+        <p class="section-subtitle">Real-time emotion analysis powered by machine learning</p>
+      </div>
+      <div class="ml-lab-grid">
+
+        <!-- Input panel -->
+        <div class="ml-lab-input-panel">
+          <label class="ml-lab-label">How are you feeling right now?</label>
+          <textarea id="ml-lab-input" class="ml-lab-textarea"
+            placeholder="Describe in detail... e.g. 'I feel pumped and ready for something epic' or 'I'm heartbroken and want a good cry'"
+            rows="5"></textarea>
+          <button class="ml-lab-btn" onclick="runMlLab()">
+            <span>🧠</span> Analyze &amp; Find Movies
+          </button>
+
+          <div id="ml-lab-processing" class="ml-processing" style="display:none;">
+            <div class="ml-processing-dot"></div>
+            <div class="ml-processing-dot"></div>
+            <div class="ml-processing-dot"></div>
+            <span>Analyzing your mood...</span>
+          </div>
+        </div>
+
+        <!-- Results panel -->
+        <div class="ml-lab-results-panel" id="ml-lab-results" style="display:none;">
+
+          <!-- Detected mood -->
+          <div class="ml-lab-mood-row">
+            <div class="ml-lab-mood-emoji" id="ml-lab-emoji">🧠</div>
+            <div class="ml-lab-mood-info">
+              <div class="ml-lab-mood-label">Detected Mood</div>
+              <div class="ml-lab-mood-name" id="ml-lab-mood-name">—</div>
+            </div>
+            <div class="ml-lab-conf-wrap">
+              <div class="ml-lab-conf-label">Confidence</div>
+              <div class="ml-lab-conf-pct" id="ml-lab-conf-pct">0%</div>
+            </div>
+          </div>
+
+          <!-- Confidence bar -->
+          <div class="ml-lab-bar-track">
+            <div class="ml-lab-bar-fill" id="ml-lab-bar"></div>
+          </div>
+
+          <!-- Keywords -->
+          <div class="ml-lab-kw-section">
+            <div class="ml-lab-section-label">📌 Keywords Detected</div>
+            <div class="ml-lab-kw-tags" id="ml-lab-keywords"></div>
+          </div>
+
+          <!-- Mini movie grid -->
+          <div class="ml-lab-section-label">🎬 Top Picks for Your Mood</div>
+          <div class="ml-lab-movies" id="ml-lab-movies">
+            <div class="ml-lab-movies-loading">
+              <span class="spinner-sm"></span> Finding matches...
+            </div>
+          </div>
+
+          <button class="ml-lab-see-all-btn" id="ml-lab-see-all" onclick="mlLabSeeAll()" style="display:none;">
+            See All Results ↓
+          </button>
+        </div>
+
+      </div>
     </div>
   </section>
 

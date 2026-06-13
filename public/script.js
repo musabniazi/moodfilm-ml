@@ -117,6 +117,126 @@ function hideMlResult() {
 
 
 /* ══════════════════════════════════════════════════════════
+   ML LAB (inline section)
+══════════════════════════════════════════════════════════ */
+let mlLabLastMood = null;
+
+async function runMlLab() {
+  const input = document.getElementById('ml-lab-input');
+  const text  = (input?.value ?? '').trim();
+  if (!text) { showToast('Describe your mood in the ML Lab first!', 'info'); return; }
+
+  const btn = document.querySelector('.ml-lab-btn');
+  if (btn) { btn.disabled = true; }
+
+  const proc = document.getElementById('ml-lab-processing');
+  if (proc) proc.style.display = 'flex';
+
+  const results = document.getElementById('ml-lab-results');
+  if (results) results.style.display = 'none';
+
+  let mlResult = null;
+  try {
+    mlResult = await mlApi('ml_sentiment', { text });
+  } catch (err) {
+    if (proc) proc.style.display = 'none';
+    if (btn)  btn.disabled = false;
+    showToast('ML analysis failed — try again!', 'error');
+    return;
+  }
+
+  if (proc) proc.style.display = 'none';
+  if (btn)  btn.disabled = false;
+
+  const { mood, confidence, keywords_found } = mlResult || {};
+  if (!mood) { showToast('No mood detected — try more descriptive text.', 'info'); return; }
+
+  mlLabLastMood = mood;
+  const moodData = MOODS.find(m => m.id === mood);
+  const emoji    = moodData?.emoji ?? '🧠';
+
+  /* Populate mood row */
+  document.getElementById('ml-lab-emoji').textContent      = emoji;
+  document.getElementById('ml-lab-mood-name').textContent  = moodData?.label ?? mood;
+  document.getElementById('ml-lab-conf-pct').textContent   = `${confidence}%`;
+
+  /* Show results panel first so bar transition fires */
+  if (results) { results.style.display = 'block'; }
+
+  /* Animate confidence bar after a tick */
+  requestAnimationFrame(() => {
+    const bar = document.getElementById('ml-lab-bar');
+    if (bar) bar.style.width = `${confidence}%`;
+  });
+
+  /* Keywords — staggered pop-in */
+  const kwContainer = document.getElementById('ml-lab-keywords');
+  if (kwContainer) {
+    kwContainer.innerHTML = '';
+    const kws = keywords_found?.slice(0, 8) ?? [];
+    kws.forEach((kw, i) => {
+      const tag = document.createElement('span');
+      tag.className = 'ml-lab-kw-tag';
+      tag.textContent = kw;
+      tag.style.animationDelay = `${i * 0.07}s`;
+      kwContainer.appendChild(tag);
+    });
+  }
+
+  /* Fetch 3 movie posters */
+  const moviesEl = document.getElementById('ml-lab-movies');
+  const seeAll   = document.getElementById('ml-lab-see-all');
+  if (moviesEl) {
+    moviesEl.innerHTML = '<div class="ml-lab-movies-loading"><span class="spinner-sm"></span> Finding matches...</div>';
+  }
+  if (seeAll) seeAll.style.display = 'none';
+
+  try {
+    const data = await api('tmdb_mood', {
+      genreIds: moodData?.genres ?? [18],
+      page:     1,
+      sortBy:   moodData?.sort ?? 'popularity.desc',
+    });
+    const picks = (data.results || []).filter(m => m.poster_path).slice(0, 3);
+
+    if (moviesEl) {
+      moviesEl.innerHTML = '';
+      picks.forEach((m, i) => {
+        const card = document.createElement('div');
+        card.className = 'ml-lab-movie-card';
+        card.style.animationDelay = `${i * 0.1}s`;
+        card.innerHTML = `
+          <img class="ml-lab-movie-poster" src="${TMDB_IMG}${m.poster_path}"
+               alt="${esc(m.title)}" loading="lazy"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <div class="ml-lab-movie-poster-fallback" style="display:none;">🎬</div>
+          <div class="ml-lab-movie-title">${esc(m.title)}</div>
+        `;
+        card.addEventListener('click', () => openModal(formatTMDbMovie(m)));
+        moviesEl.appendChild(card);
+      });
+    }
+    if (seeAll) seeAll.style.display = 'block';
+  } catch {
+    if (moviesEl) moviesEl.innerHTML = '<div class="ml-lab-movies-loading">⚠️ Could not load movies</div>';
+  }
+}
+
+function mlLabSeeAll() {
+  if (!mlLabLastMood) return;
+  const moodData = MOODS.find(m => m.id === mlLabLastMood);
+  if (moodData) {
+    pickMood(mlLabLastMood);
+    setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior:'smooth', block:'start' }), 120);
+  }
+}
+
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
+/* ══════════════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
