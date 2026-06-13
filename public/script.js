@@ -145,10 +145,11 @@ async function runMlLab() {
     return;
   }
 
-  /* Hide input, show loading */
-  document.getElementById('ml-input-wrapper').style.display = 'none';
+  /* Show loading, hide result panel (keep input visible) */
   document.getElementById('ml-result-panel').style.display = 'none';
   document.getElementById('ml-loading').style.display = 'block';
+  const analyzeBtn = document.getElementById('ml-analyze-btn');
+  if (analyzeBtn) analyzeBtn.disabled = true;
 
   let data;
   try {
@@ -164,13 +165,14 @@ async function runMlLab() {
   } catch (err) {
     console.error('ML Lab error:', err);
     document.getElementById('ml-loading').style.display = 'none';
-    document.getElementById('ml-input-wrapper').style.display = 'block';
+    if (analyzeBtn) analyzeBtn.disabled = false;
     showToast('Something went wrong. Please try again.', 'error');
     return;
   }
 
-  /* Hide loading, show result panel */
+  /* Hide loading, re-enable button, show result panel */
   document.getElementById('ml-loading').style.display = 'none';
+  if (analyzeBtn) analyzeBtn.disabled = false;
   document.getElementById('ml-result-panel').style.display = 'block';
 
   const { mood, confidence, keywords_found } = data || {};
@@ -215,19 +217,19 @@ async function runMlLab() {
 }
 
 function resetMlLab() {
-  document.getElementById('ml-input-wrapper').style.display = 'block';
   document.getElementById('ml-result-panel').style.display = 'none';
   document.getElementById('ml-loading').style.display = 'none';
 
   const textarea = document.getElementById('ml-text-input');
-  if (textarea) { textarea.value = ''; textarea.style.borderColor = ''; }
+  if (textarea) { textarea.value = ''; textarea.style.borderColor = ''; textarea.focus(); }
 
   const bar = document.getElementById('ml-confidence-bar');
   if (bar) bar.style.width = '0%';
 
+  const analyzeBtn = document.getElementById('ml-analyze-btn');
+  if (analyzeBtn) analyzeBtn.disabled = false;
+
   clearResults();
-  const resultsSection = document.getElementById('results-section');
-  if (resultsSection) resultsSection.style.display = 'none';
 
   document.getElementById('ml-lab')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
