@@ -74,12 +74,14 @@
         from_email: e.target.querySelector('input[type="email"]').value,
         subject:    e.target.querySelectorAll('input[type="text"]')[1].value,
         message:    e.target.querySelector('textarea').value,
+        name:       e.target.querySelector('input[type="text"]').value,
+        email:      e.target.querySelector('input[type="email"]').value,
       };
 
       try {
         await emailjs.send(
           'service_gh6q9yl',
-          'template_ek6ebqg',
+          'template_rkvfm5f',
           formData,
           'ye0ejYPiUfK7rqeZt'
         );
