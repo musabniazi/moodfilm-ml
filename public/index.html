@@ -60,11 +60,22 @@
         <textarea id="search-input" class="ml-textarea"
           placeholder="Describe how you're feeling right now..."
           rows="3" autocomplete="off"></textarea>
-        <button class="ml-analyze-btn" onclick="handleSearch()">
+        <button class="ml-analyze-btn" onclick="analyzeMoodAndSuggest()">
           <span class="ml-btn-icon">🧠</span>
           Analyze My Mood &amp; Find Movies
         </button>
         <p class="search-hint">Powered by NLP sentiment analysis · Free · Instant</p>
+
+        <!-- ML processing state -->
+        <div id="ml-processing" class="ml-processing" style="display:none;">
+          <div class="ml-processing-dot"></div>
+          <div class="ml-processing-dot"></div>
+          <div class="ml-processing-dot"></div>
+          <span>🧠 Analyzing your mood...</span>
+        </div>
+
+        <!-- ML result panel -->
+        <div id="ml-result-panel" class="ml-result-panel" style="display:none;"></div>
       </div>
     </div>
     <div class="scroll-indicator">

@@ -17,6 +17,10 @@ const SENTIMENT_WORDS = {
     'romantic','beautiful','sweet','adorable','charming','warm','light',
     'adventure','thrilling','epic','heroic','brave','strong','powerful',
     'curious','wonder','magic','dream','hope','inspire','uplift',
+    'energetic','pumped','bold','fearless','daring','confident',
+    'crush','affection','tender','longing','nostalgic',
+    'chill','relaxed','cozy','lazy','mellow','calm',
+    'nerdy','thoughtful','philosophical','intellectual','pensive',
   ],
   negative: [
     'sad','cry','depressed','miserable','grief','loss','sorrow','lonely',
@@ -24,19 +28,77 @@ const SENTIMENT_WORDS = {
     'angry','rage','violent','brutal','blood','kill','murder','monster',
     'anxiety','stress','tense','suspense','danger','threat','evil','sinister',
     'melancholy','heartbreak','tragedy','despair','pain','suffer',
+    'bored','dull','restless','anxious','nervous','worried','panicked',
+    'alone','isolated','empty','hollow','numb','broken',
   ],
 };
 
 /* Maps each mood to weighted trigger words */
 const MOOD_SIGNALS = {
-  happy:     { words: ['happy','joy','fun','laugh','cheerful','upbeat','comedy','light','silly','playful'], weight: 1 },
-  sad:       { words: ['sad','cry','grief','loss','sorrow','lonely','melancholy','heartbreak','tragedy','tears'], weight: 1 },
-  romantic:  { words: ['romantic','love','romance','passion','sweet','kiss','couple','valentine','adorable','charming'], weight: 1 },
-  thriller:  { words: ['suspense','tense','mystery','twist','danger','chase','spy','crime','detective','intrigue'], weight: 1 },
-  scifi:     { words: ['space','future','robot','alien','technology','science','cyber','galaxy','dystopia','quantum'], weight: 1 },
-  action:    { words: ['action','adventure','fight','battle','hero','explosive','chase','stunts','war','mission'], weight: 1 },
-  horror:    { words: ['horror','scary','fear','ghost','monster','terror','nightmare','creepy','haunted','dark'], weight: 1 },
-  animation: { words: ['cartoon','animated','animation','kids','family','cute','colorful','pixar','disney','magic'], weight: 1 },
+  happy: {
+    words: [
+      'happy','joy','fun','laugh','cheerful','upbeat','comedy','light','silly','playful',
+      'smile','goofy','hilarious','giddy','elated','carefree','bubbly','jolly','humor',
+    ],
+    weight: 1,
+  },
+  sad: {
+    words: [
+      'sad','cry','grief','loss','sorrow','lonely','melancholy','heartbreak','tragedy','tears',
+      'depressed','miserable','heartbroken','broken','hopeless','despair','mourn','empty',
+      'alone','isolated','abandoned','unloved','hurt','devastated','gloomy','blue',
+    ],
+    weight: 1,
+  },
+  romantic: {
+    words: [
+      'romantic','love','romance','passion','sweet','kiss','couple','valentine','adorable','charming',
+      'crush','affection','tender','date','flirt','intimacy','longing','soulmate','butterflies','beloved',
+      'infatuated','attracted','devoted','loving','heartfelt','amorous',
+    ],
+    weight: 1,
+  },
+  thriller: {
+    words: [
+      'suspense','tense','mystery','twist','danger','chase','spy','crime','detective','intrigue',
+      'stressed','anxious','nervous','worried','paranoid','uneasy','panic','pressure','edgy',
+      'conspiracy','murder','heist','thriller','gripping','taut','whodunit',
+    ],
+    weight: 1,
+  },
+  scifi: {
+    words: [
+      'space','future','robot','alien','technology','science','cyber','galaxy','dystopia','quantum',
+      'curious','nerdy','thoughtful','philosophical','intellectual','pensive','discovery','universe',
+      'artificial','intelligence','simulation','time','dimension','experiment','innovation','geek',
+    ],
+    weight: 1,
+  },
+  action: {
+    words: [
+      'action','adventure','fight','battle','hero','explosive','chase','stunts','war','mission',
+      'excited','energetic','pumped','adrenaline','bold','fearless','daring','epic','intense',
+      'rush','wild','extreme','warrior','champion','combat','thrill','powerful','unstoppable',
+      'adventurous','confident','driven','motivated',
+    ],
+    weight: 1,
+  },
+  horror: {
+    words: [
+      'horror','scary','fear','ghost','monster','terror','nightmare','creepy','haunted','dark',
+      'scared','terrified','startled','dread','eerie','sinister','unsettled','jumpy',
+      'night','shadow','lurking','ominous','chilling','spine','demonic','paranormal',
+    ],
+    weight: 1,
+  },
+  animation: {
+    words: [
+      'cartoon','animated','animation','kids','family','cute','colorful','pixar','disney','magic',
+      'bored','lazy','chill','relaxed','cozy','mellow','lighthearted','whimsical',
+      'nostalgic','childhood','comfort','easy','simple',
+    ],
+    weight: 1,
+  },
 };
 
 function analyzeSentiment(text) {
@@ -80,9 +142,12 @@ function analyzeSentiment(text) {
   const sorted = Object.entries(moodScores).sort((a, b) => b[1].score - a[1].score);
   const [topMood, topData] = sorted[0];
 
-  /* Confidence: ratio of top score to sum of all scores */
+  /* Confidence: ratio of top score to sum of all scores, scaled to 0-100 */
   const totalScore = sorted.reduce((s, [, d]) => s + Math.max(0, d.score), 0) || 1;
-  const confidence = Math.min(1, Math.max(0.1, Math.max(0, topData.score) / totalScore));
+  const rawConf = Math.min(1, Math.max(0.1, Math.max(0, topData.score) / totalScore));
+  /* Boost confidence when we have strong keyword hits */
+  const hitBoost = Math.min(0.25, topData.matched.length * 0.05);
+  const confidence = Math.round(Math.min(99, Math.max(10, (rawConf + hitBoost) * 100)));
 
   const keywords_found = [...new Set([...found.positive, ...found.negative, ...topData.matched])];
 
@@ -91,7 +156,7 @@ function analyzeSentiment(text) {
     `Detected ${sentimentLabel} sentiment (${pos} positive / ${neg} negative signal words). ` +
     `Best mood match: "${topMood}" based on keywords: ${topData.matched.join(', ') || 'general tone'}.`;
 
-  return { mood: topMood, confidence: +confidence.toFixed(3), keywords_found, explanation };
+  return { mood: topMood, confidence, keywords_found, explanation };
 }
 
 /* ── CONTENT-BASED FILTERING ─────────────────────────────── */
